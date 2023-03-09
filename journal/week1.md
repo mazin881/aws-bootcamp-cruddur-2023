@@ -2,63 +2,111 @@
 
 ## Requird Homework/ Tasks
 
-# Clone the frontend and backend repo
+### Launch the repo within a Gitpod workspace
 
-Inside Container
-make a new folder inside Container
+- I Created a new GitHub repo
 
-```
-WORKDIR /backend-flask
-```
+- I Launch the repo within a Gitpod workspace
 
+- I Configured Gitpod.yml configuration, eg. I’m VSCode Extensions
 
-# Outside Container -> # Inside Container
-# This contain the libraries want to install to run app
-COPY requirements.txt 
+- I Cloned the frontend and backend repo
 
-# Inside Container
-# install the python libraries used for the app
-```
+![Intial Gitpod](assest/Initial-gitpod.png)
+
+## Containerize Backend
+
+### Inside Container
+### install the python libraries used for the app
 RUN pip3 install -r requirements.txt
-```
 
+### Run Container
 
-# Outside Container -> # Inside Container
-# . mean everythins in the current directory
-# first period . - /backend-flask (outside container)
-# second period . /backend-flash (inside container)
-COPY . .
-
-# Set Environment Variable (Env Vars)
-# Inside Container and will remain set when the container is running 
-ENV FLASK_ENV=development
-
-EXPOSE ${PORT}
-
-# Cmd (Command)
-# python3 -m flask run --host=0.0.0.0 --port=4567
-CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0", "--port=4567"]
-
-```
-
-cd backend-flask
+Run 
+```sh
+docker run --rm -p 4567:4567 -it backend-flask
+FRONTEND_URL="*" BACKEND_URL="*" docker run --rm -p 4567:4567 -it backend-flask
 export FRONTEND_URL="*"
 export BACKEND_URL="*"
-python3 -m flask run --host=0.0.0.0 --port=4567
-cd ..
+docker run --rm -p 4567:4567 -it -e FRONTEND_URL='*' -e BACKEND_URL='*' backend-flask
+unset FRONTEND_URL="*"
+unset BACKEND_URL="*"
 ```
 
-make sure to unlock the port on the port tab
+Run in background
+```sh
+docker container run --rm -p 4567:4567 -d backend-flask
+```
 
-Build 
-docker build -t  backend-flask ./backend-flask
+Return the container id into an Env Vat
+```sh
+CONTAINER_ID=$(docker run --rm -p 4567:4567 -d backend-flask)
+```
+![Docker is running](assest/Docker-run.png)
 
-run 
-issues 
-docker build -t  backend-flask ./backend-flask
-sol 
-FRONTEND_URL="*" BACKEND_URL="*" docker run --rm -p 4567:4567 -it backend-flask
+> docker container run is idiomatic, docker run is legacy syntax but is commonly used.
+
+### Get Container Images or Running Container Ids
+
+```
+docker ps
+docker images
+```
+![Show Docker Images](assest/Docker-Images.png)
 
 
-active 
-docker run --rm -p 4567:4567 -it -e FRONTEND_URL='*' -e BACKEND_URL='*' backend-flask
+### Send Curl to Test Server
+
+```sh
+curl -X GET http://localhost:4567/api/activities/home -H "Accept: application/json" -H "Content-Type: application/json"
+```
+![Get Info](assest/Get-Inf.png)
+
+### Check Container Logs
+
+```sh
+docker logs CONTAINER_ID -f
+docker logs backend-flask -f
+docker logs $CONTAINER_ID -f
+```
+
+###  Debugging  adjacent containers with other containers
+
+```sh
+docker run --rm -it curlimages/curl "-X GET http://localhost:4567/api/activities/home -H \"Accept: application/json\" -H \"Content-Type: application/json\""
+```
+
+busybosy is often used for debugging since it install a bunch of thing
+
+```sh
+docker run --rm -it busybosy
+```
+
+### Gain Access to a Container
+
+```sh
+docker exec CONTAINER_ID -it /bin/bash
+```
+
+> You can just right click a container and see logs in VSCode with Docker extension
+
+### Delete an Image
+
+```sh
+docker image rm backend-flask --force
+```
+
+> docker rmi backend-flask is the legacy syntax, you might see this is old docker tutorials and articles.
+
+> There are some cases where you need to use the --force
+
+### Overriding Ports
+
+```sh
+FLASK_ENV=production PORT=8080 docker run -p 4567:4567 -it backend-flask
+```
+
+> Look at Dockerfile to see how ${PORT} is interpolated
+
+
+```
