@@ -88,25 +88,50 @@ docker run --rm -it busybosy
 docker exec CONTAINER_ID -it /bin/bash
 ```
 
-> You can just right click a container and see logs in VSCode with Docker extension
-
-### Delete an Image
-
-```sh
-docker image rm backend-flask --force
-```
-
-> docker rmi backend-flask is the legacy syntax, you might see this is old docker tutorials and articles.
-
-> There are some cases where you need to use the --force
-
 ### Overriding Ports
 
 ```sh
 FLASK_ENV=production PORT=8080 docker run -p 4567:4567 -it backend-flask
 ```
 
-> Look at Dockerfile to see how ${PORT} is interpolated
+Look at Dockerfile to see how ${PORT} is interpolated
 
+## Containerize Frontend
+
+## Run NPM Install
+
+We have to run NPM Install before building the container since it needs to copy the contents of node_modules
 
 ```
+cd frontend-react-js
+npm i
+```
+
+### Create Docker File
+
+Create a file here: `frontend-react-js/Dockerfile`
+
+```dockerfile
+FROM node:16.18
+
+ENV PORT=3000
+
+COPY . /frontend-react-js
+WORKDIR /frontend-react-js
+RUN npm install
+EXPOSE ${PORT}
+CMD ["npm", "start"]
+```
+
+### Build Container
+
+```sh
+docker build -t frontend-react-js ./frontend-react-js
+```
+
+### Run Container
+
+```sh
+docker run -p 3000:3000 -d frontend-react-js
+```
+
